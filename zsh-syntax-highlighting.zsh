@@ -311,6 +311,22 @@ _zsh_highlight_bind_widgets || {
   return 1
 }
 
+_zsh_highlight_load_theme()
+{
+  local theme
+  for theme; do
+    if [[ ${theme[1]} == / ]]; then
+      source $theme
+    else
+      source $ZSH_HIGHLIGHT_THEMES_DIR/$theme
+    fi
+  done
+}
+
+# Set default themes directory
+: ${ZSH_HIGHLIGHT_THEMES_DIR:=${0:A:h}/themes}
+_zsh_highlight_load_theme ${ZSH_HIGHLIGHT_THEME:-default}
+
 # Resolve highlighters directory location.
 _zsh_highlight_load_highlighters "${ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR:-${${0:A}:h}/highlighters}" || {
   echo 'zsh-syntax-highlighting: failed loading highlighters, exiting.' >&2

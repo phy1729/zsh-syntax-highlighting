@@ -42,6 +42,18 @@ page][zshzle-Character-Highlighting].
 
 [zshzle-Character-Highlighting]: http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Character-Highlighting
 
+Styles may be set directly or by themes. If no theme is specified in
+`ZSH_HIGHLIGHT_THEME` the `default` theme will be loaded. Additional themes
+may be layered on top (overriding previous theme's settings) by calling
+`_zsh_highlight_load_theme`.  `_zsh_highlight_load_theme` takes the path to
+a theme as an argument. Relative paths are relative to
+`ZSH_HIGHLIGHT_THEMES_DIR` which defaults to the themes directory in
+zsh-syntax-highlighting's root directory.
+
+The `default` theme is a colorful theme that preserves the defaults the
+highlighters originally had. The `error-only` theme is also available for
+highlighting only syntax errors.
+
 Some highlighters support additional configuration parameters; see each
 highlighter's documentation for details and examples.
 
@@ -66,7 +78,11 @@ To create your own `myhighlighter` highlighter:
 * Implement the `_zsh_highlight_myhighlighter_highlighter` function.
   This function does the actual syntax highlighting, by calling
   `_zsh_highlight_add_highlight` with the start and end of the region to
-  be highlighted and the `ZSH_HIGHLIGHT_STYLES` key to use. Define the default
+  be highlighted and the `ZSH_HIGHLIGHT_STYLES` key to use.
+
+  FIXME: How should third-party highlighters hook provide themes?
+
+  Define the default
   style for that key in the highlighter script outside of any function with
   `: ${ZSH_HIGHLIGHT_STYLES[key]:=value}`, being sure to prefix
   the key with your highlighter name and a colon. For example:
