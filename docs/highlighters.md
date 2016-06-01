@@ -46,13 +46,14 @@ Styles may be set directly or by themes. If no theme is specified in
 `ZSH_HIGHLIGHT_THEME` the `default` theme will be loaded. Additional themes
 may be layered on top (overriding previous theme's settings) by calling
 `_zsh_highlight_load_theme`.  `_zsh_highlight_load_theme` takes the path to
-a theme as an argument. Relative paths are relative to
-`ZSH_HIGHLIGHT_THEMES_DIR` which defaults to the themes directory in
-zsh-syntax-highlighting's root directory.
+a theme as an argument. Relative paths are relative to the themes directory in
+zsh-syntax-highlighting's root directory and the themes directory (if any) in
+each highlighter's directory.
 
 The `default` theme is a colorful theme that preserves the defaults the
 highlighters originally had. The `error-only` theme is also available for
-highlighting only syntax errors.
+highlighting only syntax errors. If `ZSH_HIGHLIGHT_THEME` is set but empty, no
+theme will be loaded.
 
 Some highlighters support additional configuration parameters; see each
 highlighter's documentation for details and examples.

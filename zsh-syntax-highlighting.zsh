@@ -313,19 +313,19 @@ _zsh_highlight_bind_widgets || {
 
 _zsh_highlight_load_theme()
 {
-  local theme
-  for theme; do
-    if [[ ${theme[1]} == / ]]; then
+  local theme=$1
+  shift 1
+  if [[ ${theme[1]} == / ]]; then
+    source $theme
+  else
+    for theme in ${0:A:h}/themes/$theme ${0:A:h}/highlighters/$^ZSH_HIGHLIGHT_HIGHLIGHTERS/$theme(N); do
       source $theme
-    else
-      source $ZSH_HIGHLIGHT_THEMES_DIR/$theme
-    fi
-  done
+    done
+  fi
 }
 
-# Set default themes directory
-: ${ZSH_HIGHLIGHT_THEMES_DIR:=${0:A:h}/themes}
-_zsh_highlight_load_theme ${ZSH_HIGHLIGHT_THEME:-default}
+# Load the theme.
+_zsh_highlight_load_theme "${ZSH_HIGHLIGHT_THEME-default}"
 
 # Resolve highlighters directory location.
 _zsh_highlight_load_highlighters "${ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR:-${${0:A}:h}/highlighters}" || {
