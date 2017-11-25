@@ -889,6 +889,10 @@ _zsh_highlight_main_highlighter_highlight_argument()
         if (( ret == 0 )); then
           highlights+=($(( start_pos + i - 1 )) $(( start_pos + i )) process-substitution-delimiter)
         fi
+      elif [[ $zsyh_user_options[equals] == on ]]; then
+        base_style=equals-expansion
+        # Declare locally to hide the global variable only for this argument
+        local highlight_glob=false
       fi
   esac
 

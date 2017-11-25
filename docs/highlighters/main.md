@@ -36,6 +36,7 @@ This highlighter defines the following styles:
 * `command-substitution-delimiter` - command substitution delimiters (`$(` and `)`)
 * `process-substitution` - process substitutions (`<(echo foo)`)
 * `process-substitution-delimiter` - process substitution delimiters (`<(` and `)`)
+* `equals-expansion` - equals expansion expressions (`=zsh`)
 * `single-hyphen-option` - single-hyphen options (`-o`)
 * `double-hyphen-option` - double-hyphen options (`--option`)
 * `back-quoted-argument` - backtick command substitution (`` `foo` ``)
