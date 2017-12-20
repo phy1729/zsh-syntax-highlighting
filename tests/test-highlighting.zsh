@@ -62,6 +62,9 @@ else
 fi
 [[ -n $results_filter ]] || { echo >&2 "Bail out! BUG setting \$results_filter"; exit 2 }
 
+# Activate the highlighter.
+ZSH_HIGHLIGHT_HIGHLIGHTERS=($1)
+
 # Load the main script.
 # While here, test that it doesn't eat aliases.
 print > >($results_filter | ${0:A:h}/tap-colorizer.zsh) -r -- "# global (driver) tests"
@@ -82,9 +85,6 @@ _zsh_highlight_add_highlight()
 {
   region_highlight+=("$1 $2 $3")
 }
-
-# Activate the highlighter.
-ZSH_HIGHLIGHT_HIGHLIGHTERS=($1)
 
 # Runs a highlighting test
 # $1: data file

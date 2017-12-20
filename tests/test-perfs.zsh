@@ -47,11 +47,11 @@
   exit 2
 }
 
-# Load the main script.
-. ${0:h:h}/zsh-syntax-highlighting.zsh
-
 # Activate the highlighter.
 ZSH_HIGHLIGHT_HIGHLIGHTERS=($1)
+
+# Load the main script.
+. ${0:h:h}/zsh-syntax-highlighting.zsh
 
 # Runs a highlighting test
 # $1: data file

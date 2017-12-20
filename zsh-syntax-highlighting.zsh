@@ -365,18 +365,19 @@ _zsh_highlight_load_highlighters()
 {
   setopt localoptions noksharrays bareglobqual
 
+  local highlighter highlighter_dir; highlighter_dir=$1
+  shift 1
+
   # Check the directory exists.
-  [[ -d "$1" ]] || {
-    print -r -- >&2 "zsh-syntax-highlighting: highlighters directory ${(qq)1} not found."
+  [[ -d "$highlighter_dir" ]] || {
+    print -r -- >&2 "zsh-syntax-highlighting: highlighters directory ${(qqhighlighter_dir1} not found."
     return 1
   }
 
   # Load highlighters from highlighters directory and check they define required functions.
-  local highlighter highlighter_dir
-  for highlighter_dir ($1/*/(/)); do
-    highlighter="${highlighter_dir:t}"
-    [[ -f "$highlighter_dir${highlighter}-highlighter.zsh" ]] &&
-      . "$highlighter_dir${highlighter}-highlighter.zsh"
+  for highlighter; do
+    [[ -f "$highlighter_dir/$highlighter/${highlighter}-highlighter.zsh" ]] &&
+      . "$highlighter_dir/$highlighter/${highlighter}-highlighter.zsh"
     if type "_zsh_highlight_highlighter_${highlighter}_paint" &> /dev/null &&
        type "_zsh_highlight_highlighter_${highlighter}_predicate" &> /dev/null;
     then
@@ -409,8 +410,11 @@ _zsh_highlight_bind_widgets || {
   return 1
 }
 
+# Initialize the array of active highlighters if needed.
+[[ $#ZSH_HIGHLIGHT_HIGHLIGHTERS -eq 0 ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main)
+
 # Resolve highlighters directory location.
-_zsh_highlight_load_highlighters "${ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR:-${${0:A}:h}/highlighters}" || {
+_zsh_highlight_load_highlighters "${ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR:-${${0:A}:h}/highlighters}" $ZSH_HIGHLIGHT_HIGHLIGHTERS || {
   print -r -- >&2 'zsh-syntax-highlighting: failed loading highlighters, exiting.'
   return 1
 }
@@ -428,9 +432,6 @@ add-zsh-hook preexec _zsh_highlight_preexec_hook 2>/dev/null || {
 
 # Load zsh/parameter module if available
 zmodload zsh/parameter 2>/dev/null || true
-
-# Initialize the array of active highlighters if needed.
-[[ $#ZSH_HIGHLIGHT_HIGHLIGHTERS -eq 0 ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main)
 
 # Restore the aliases we unned
 eval "$zsh_highlight__aliases"
