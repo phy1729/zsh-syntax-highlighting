@@ -860,8 +860,8 @@ _zsh_highlight_main_highlighter_check_path()
 # This command will at least highlight $1 to end_pos with the default style
 _zsh_highlight_main_highlighter_highlight_argument()
 {
-  local base_style=default i=$1 path_eligible=1 ret start style
-  local -a highlights
+  local base_style=default i=$1 path_eligible=1 ret seen_glob=0 start style
+  local -a highlights reply
 
   local -a match mbegin mend
   local MATCH; integer MBEGIN MEND
@@ -940,6 +940,19 @@ _zsh_highlight_main_highlighter_highlight_argument()
         if [[ $arg[i+1] == [*@#?$!-] ]]; then
           (( i += 1 ))
         fi;;
+      [#^])
+        if $highlight_glob && [[ $zsyh_user_options[extendedglob] == on ]]; then
+          highlights+=($(( start_pos + i - 1 )) $(( start_pos + i )) globbing)
+          path_eligible=0
+          seen_glob=1
+        fi
+        ;;
+      \~)
+        if $highlight_glob && [[ $zsyh_user_options[extendedglob] == on ]] && (( seen_glob )); then
+          highlights+=($(( start_pos + i - 1 )) $(( start_pos + i )) globbing)
+          path_eligible=0
+        fi
+        ;;
       [\<\>])
         if [[ $arg[i+1] == $'\x28' ]]; then # \x28 = open paren
           start=$i
@@ -963,6 +976,7 @@ _zsh_highlight_main_highlighter_highlight_argument()
           highlights+=($(( start_pos + i - 1 )) $(( start_pos + i + $#MATCH - 1)) globbing)
           (( i += $#MATCH - 1 ))
           path_eligible=0
+          seen_glob=1
         else
           continue
         fi
