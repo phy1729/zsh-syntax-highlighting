@@ -86,6 +86,7 @@ _zsh_highlight_main_add_region_highlight() {
         path_pathseparator path
         path_prefix_pathseparator path_prefix
 
+        history-expansion{-unclosed,}
         single-quoted-argument{-unclosed,}
         double-quoted-argument{-unclosed,}
         dollar-single-quoted-argument{-unclosed,}
@@ -221,7 +222,7 @@ _zsh_highlight_highlighter_main_paint()
   fi
 
   ## Variable declarations and initializations
-  local start_pos=0 end_pos highlight_glob=true arg style
+  local start_pos=0 end_pos highlight_glob=true history_enabled arg style
   local in_array_assignment=false # true between 'a=(' and the matching ')'
   typeset -a ZSH_HIGHLIGHT_TOKENS_COMMANDSEPARATOR
   typeset -a ZSH_HIGHLIGHT_TOKENS_PRECOMMANDS
@@ -244,6 +245,12 @@ _zsh_highlight_highlighter_main_paint()
     local right_brace_is_recognised_everywhere=false
   else
     local right_brace_is_recognised_everywhere=true
+  fi
+
+  if [[ $zsyh_user_options[banghist] == on ]]; then
+    history_enabled=true
+  else
+    history_enabled=false
   fi
 
   if [[ $zsyh_user_options[pathdirs] == on ]]; then
@@ -676,8 +683,6 @@ _zsh_highlight_highlighter_main_paint()
                    if [[ $style == reserved-word ]]; then
                      next_word+=':always:'
                    fi
-                 elif [[ $arg[0,1] = $histchars[0,1] ]] && (( $#arg[0,2] == 2 )); then
-                   style=history-expansion
                  elif [[ -n ${(M)ZSH_HIGHLIGHT_TOKENS_COMMANDSEPARATOR:#"$arg"} ]]; then
                    if [[ $this_word == *':regular:'* ]]; then
                      style=commandseparator
@@ -840,6 +845,11 @@ _zsh_highlight_main_highlighter_highlight_argument()
         elif [[ $arg[i+1] == [*@#?-$!] ]]; then
           (( i += 1 ))
         fi;;
+      $histchars[1])
+        _zsh_highlight_main_highlighter_highlight_history_expansion $i
+        (( i = REPLY ))
+        highlights+=($reply)
+        ;;
       *)
         if $highlight_glob && [[ ${arg[$i]} =~ ^[*?] || ${arg:$i-1} =~ ^\<[0-9]*-[0-9]*\> ]]; then
           highlights+=($(( start_pos + i - 1 )) $(( start_pos + i + $#MATCH - 1)) globbing)
@@ -946,12 +956,12 @@ _zsh_highlight_main_highlighter_highlight_double_quote()
             fi
             ;;
       ($histchars[1]) # ! - may be a history expansion
-            if [[ $arg[i+1] != ('='|$'\x28'|$'\x7b'|[[:blank:]]) ]]; then
-              style=history-expansion
-            else
-              continue
-            fi
-            ;;
+        saved_reply=($reply)
+        _zsh_highlight_main_highlighter_highlight_history_expansion $i
+        (( i = REPLY ))
+        reply=($saved_reply $reply)
+	continue
+        ;;
       *) continue ;;
 
     esac
@@ -1038,6 +1048,150 @@ _zsh_highlight_main_highlighter_highlight_backtick()
     style=back-quoted-argument-unclosed
   fi
   reply=($(( start_pos + arg1 - 1 )) $(( start_pos + i )) $style)
+  REPLY=$i
+}
+
+# Highlight history expansion
+_zsh_highlight_main_highlighter_highlight_history_expansion()
+{
+  local a brace_start=false cflag=0 i=$1 style=history-expansion
+  reply=()
+
+  # cf. Src/hist.c histsubchar()
+  if [[ $arg[i+1] == '{' ]]; then
+    brace_start=true
+  fi
+
+  if [[ $arg[i+1] == '"' ]]; then
+    # TODO: should only disable history expansion for the rest of the list
+    history_enabled=false
+    REPLY=$(( i + 1 ))
+    reply=($(( start_pos + $1 - 1 )) $(( start_pos + $1 + 1 )) history-expansion)
+    return
+  fi
+
+  if ! $history_enabled || [[ -z $arg[i+1] || $arg[i+1] == ([[:blank:]]|'='|'(') ]]; then
+    REPLY=$i
+    return 1
+  fi
+
+  if [[ $arg[i+1] == '?' ]]; then
+    a=$'[?\n]'
+    i=$arg[(ib:i+2:)$a]
+  else
+    # Event designator
+    for (( i = $1; i < end_pos - start_pos; )) ; do
+      if [[ $arg[i+1] == ([[:blank:]]|';'|':'|'^'|'$'|'*'|'%'|'}'|"'"|'"'|'`') ]]; then
+        break
+      fi
+      if [[ $i != $1 ]]; then
+        if [[ $arg[i] == - ]]; then
+          break
+        fi
+        if [[ $arg[$1+1] == ([[:digit]]|'-') && $arg[i+1] != [[:digit:]] ]]; then
+          break
+        fi
+      fi
+      (( i++ ))
+      if [[ $arg[i] == ('#'|$histchars[1]) ]]; then
+        break
+      fi
+    done
+    if [[ $i == $(( $1 + 1 )) &&
+        $arg[i] == ('}'|';'|"'"|'"'|'`') ]]; then
+      REPLY=$1
+      return 1
+    fi
+
+    if [[ $arg[i] == : ]]; then
+      cflag=1
+      (( i++ ))
+      # TODO: highlight "event not found" and "ambiguous history reference" as unknown-token
+    fi
+
+    # Word designator
+    if [[ $arg[i] == '*' ]]; then
+      cflag=0
+    else
+      if ! _zsh_highlight_main_highlighter_getargspec $i; then
+        # XXX
+      fi
+      (( i = REPLY ))
+    fi
+
+    # Modifers
+    while :; do
+      (( cflag )) || (( i++ ))
+      cflag=0
+      if [[ $arg[i] == ':' ]]; then
+        (( i++ ))
+        if [[ $arg[i] == 'g' ]]; then
+          (( i++ ))
+          if [[ $arg[i] != ('s'|'&') ]]; then
+            reply=($(( start_pos + i - 3)) $(( start_pos + i )) unknown-token)
+            break
+          fi
+        fi
+        if [[ $arg[i] != (p|a|A|c|h|e|r|t|s|'&'|q|Q|x|l|u) ]]; then
+            reply=($(( start_pos + i - 2)) $(( start_pos + i )) unknown-token)
+            break
+        elif [[ $arg[i] == s ]]; then
+          (( i++ ))
+          _zsh_highlight_main_highlighter_getsubsargs $i
+          (( i = REPLY ))
+        fi
+      else
+	if [[ $arg[i] != '}' ]] || ! $brace_start; then
+	  (( i-- ))
+        elif [[ $arg[i] != '}' ]] && $brace_start; then
+          style=history-expansion-unclosed
+        fi
+        break
+      fi
+    done
+  fi
+
+  reply=($(( start_pos + $1 - 1 ))  $(( start_pos + i )) $style $reply)
+  REPLY=$i
+}
+
+# Mirrors Src/hist.c getargspec()
+_zsh_highlight_main_highlighter_getargspec()
+{
+  local i=$1
+
+  (( i++ ))
+  if [[ $arg[i] == 0 ]]; then
+  elif [[ $arg[i] == [[:digit:]] ]]; then
+    i=$arg[(ib:i:)[^[:digit:]]]
+    (( i-- ))
+  # TODO: highlight "Ambiguous history reference" and "% with no previous word matched" as unknown-token
+  elif [[ $arg[i] == ('^'|'$'|'%') ]]; then
+  else
+    (( i-- ))
+  fi
+  REPLY=$i
+}
+
+# Mirrors Src/hist.c getsubsargs()
+# Parses but does not reply a highlight for :s/foo/bar/.
+# $1 should be pointing to the delimiter when called.
+_zsh_highlight_main_highlighter_getsubsargs()
+{
+  local arg1=$1 del i=$1
+  del=$arg[i]
+
+  repeat 2; do
+    # (z) handles the \n case, so just search for del
+    while i=$arg[(ib:i+1:)$del]; [[ $arg[i-1] == '\' && $i -lt $(( end_pos - start_pos )) ]]; do
+    done
+  done
+
+  # :G
+  if [[ $arg[i] == $del && $arg[i+1] == : && $arg[i+2] == G ]]; then
+    (( i+=2 ))
+  fi
+
   REPLY=$i
 }
 
