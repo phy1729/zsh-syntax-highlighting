@@ -27,13 +27,28 @@
 # vim: ft=zsh sw=2 ts=2 et
 # -------------------------------------------------------------------------------------------------
 
-BUFFER='!foo bar !baz ! ; !'
+BUFFER='!foo bar !baz ! !!:s/foo/bar/:G !# !!:% !1729^:a !!:ga !!$:s/a/b/:a:c; !'
 
 expected_region_highlight=(
   "1 4 history-expansion" # !foo
   "6 8 default" # bar
+  "10 13 default" # !baz
   "10 13 history-expansion" # !baz
   "15 15 default" # !
-  "17 17 commandseparator" # ;
-  "19 19 reserved-word" # !
+  "17 31 default" # !!:s/foo/bar/:G
+  "17 31 history-expansion" # !!:s/foo/bar/:G
+  "33 34 default" # !#
+  "33 34 history-expansion" # !#
+  "36 39 default" # !!:%
+  "36 39 history-expansion" # !!:%
+  "38 39 unknown-token" # :%
+  "41 48 default" # !1729^:a
+  "41 48 history-expansion" # !1729^:a
+  "50 54 default" # !!:ga
+  "50 54 history-expansion" # !!:ga
+  "52 54 unknown-token" # :ga
+  "56 69 default" # !!$:s/a/b/:a:c
+  "56 69 history-expansion" # !!$:s/a/b/:a:c
+  "70 70 commandseparator" # ;
+  "72 72 reserved-word" # !
 )
