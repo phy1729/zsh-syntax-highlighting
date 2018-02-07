@@ -33,7 +33,6 @@ BUFFER=$'# foo\ntrue'
 
 expected_region_highlight=(
   '1 5 comment' # #
-  #'6 6 '"' # \n
-
+  '6 6 commandseparator "XXX"' # \n
   '7 10 builtin' # true
 )
