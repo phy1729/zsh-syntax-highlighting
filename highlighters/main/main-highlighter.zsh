@@ -796,14 +796,12 @@ _zsh_highlight_main_highlighter_check_assign()
 
 _zsh_highlight_main_highlighter_highlight_path_separators()
 {
-  local pos style_pathsep
+  local pos=$(( start_pos - 1 )) style_pathsep
   style_pathsep=$1_pathseparator
   reply=()
   [[ -z "$ZSH_HIGHLIGHT_STYLES[$style_pathsep]" || "$ZSH_HIGHLIGHT_STYLES[$1]" == "$ZSH_HIGHLIGHT_STYLES[$style_pathsep]" ]] && return 0
-  for (( pos = start_pos; $pos <= end_pos; pos++ )) ; do
-    if [[ $BUFFER[pos] == / ]]; then
-      reply+=($((pos - 1)) $pos $style_pathsep)
-    fi
+  while pos=$BUFFER[(ib:pos+1:)/]; (( pos <= end_pos )); do
+    reply+=($((pos - 1)) $pos $style_pathsep)
   done
 }
 
@@ -892,7 +890,7 @@ _zsh_highlight_main_highlighter_highlight_argument()
       fi
   esac
 
-  for (( ; i <= end_pos - start_pos ; i += 1 )); do
+  while i=$arg[(ib:i+1:)[\\\\\'\"\`\$\<\>\*\?]]; (( i <= end_pos - start_pos )); do
     case "$arg[$i]" in
       "\\") (( i += 1 )); continue;;
       "'")
@@ -1019,10 +1017,10 @@ _zsh_highlight_main_highlighter_highlight_double_quote()
 {
   local -a match mbegin mend saved_reply
   local MATCH; integer MBEGIN MEND
-  local i j k ret style
+  local i=$1 j k ret style
   reply=()
 
-  for (( i = $1 + 1 ; i <= end_pos - start_pos ; i += 1 )) ; do
+  while i=$arg[(ib:i+1:)[\"\`\$\\\\$histchars[1]]]; (( i <= end_pos - start_pos )); do
     (( j = i + start_pos - 1 ))
     (( k = j + 1 ))
     case "$arg[$i]" in
@@ -1106,20 +1104,18 @@ _zsh_highlight_main_highlighter_highlight_dollar_quote()
 {
   local -a match mbegin mend
   local MATCH; integer MBEGIN MEND
-  local i j k style
+  local i=$(( $1 + 1 )) j k style
   local AA
   integer c
   reply=()
 
-  for (( i = $1 + 2 ; i <= end_pos - start_pos ; i += 1 )) ; do
+  while i=$arg[(ib:i+1:)[\'\\\\]]; (( i <= end_pos - start_pos )); do
     (( j = i + start_pos - 1 ))
     (( k = j + 1 ))
     case "$arg[$i]" in
       "'") break;;
       "\\") style=back-dollar-quoted-argument
-            for (( c = i + 1 ; c <= end_pos - start_pos ; c += 1 )); do
-              [[ "$arg[$c]" != ([0-9xXuUa-fA-F]) ]] && break
-            done
+            c=$arg[(ib:i+1:)[^0-9xXuUa-fA-F]]
             AA=$arg[$i+1,$c-1]
             # Matching for HEX and OCT values like \0xA6, \xA6 or \012
             if [[    "$AA" =~ "^(x|X)[0-9a-fA-F]{1,2}"
