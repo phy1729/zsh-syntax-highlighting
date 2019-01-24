@@ -1,0 +1,195 @@
+---
+version: 2.1
+commands:
+  test:
+    steps:
+      - checkout
+      - run: install_packages make
+      - run: make test
+
+jobs:
+  master:
+    docker:
+      - image: zshusers/zsh-master
+    steps:
+      - test
+  zsh-5_6_2:
+    docker:
+      - image: zshusers/zsh-5.6.2
+    steps:
+      - test
+  zsh-5_6_1:
+    docker:
+      - image: zshusers/zsh-5.6.1
+    steps:
+      - test
+  zsh-5_6:
+    docker:
+      - image: zshusers/zsh-5.6
+    steps:
+      - test
+  zsh-5_5_1:
+    docker:
+      - image: zshusers/zsh-5.5.1
+    steps:
+      - test
+  zsh-5_5:
+    docker:
+      - image: zshusers/zsh-5.5
+    steps:
+      - test
+  zsh-5_4_2:
+    docker:
+      - image: zshusers/zsh-5.4.2
+    steps:
+      - test
+  zsh-5_4_1:
+    docker:
+      - image: zshusers/zsh-5.4.1
+    steps:
+      - test
+  zsh-5_4:
+    docker:
+      - image: zshusers/zsh-5.4
+    steps:
+      - test
+  zsh-5_3_1:
+    docker:
+      - image: zshusers/zsh-5.3.1
+    steps:
+      - test
+  zsh-5_3:
+    docker:
+      - image: zshusers/zsh-5.3
+    steps:
+      - test
+  zsh-5_2:
+    docker:
+      - image: zshusers/zsh-5.2
+    steps:
+      - test
+  zsh-5_1_1:
+    docker:
+      - image: zshusers/zsh-5.1.1
+    steps:
+      - test
+  zsh-5_1:
+    docker:
+      - image: zshusers/zsh-5.1
+    steps:
+      - test
+  zsh-5_0_8:
+    docker:
+      - image: zshusers/zsh-5.0.8
+    steps:
+      - test
+  zsh-5_0_7:
+    docker:
+      - image: zshusers/zsh-5.0.7
+    steps:
+      - test
+  zsh-5_0_6:
+    docker:
+      - image: zshusers/zsh-5.0.6
+    steps:
+      - test
+  zsh-5_0_5:
+    docker:
+      - image: zshusers/zsh-5.0.5
+    steps:
+      - test
+  zsh-5_0_4:
+    docker:
+      - image: zshusers/zsh-5.0.4
+    steps:
+      - test
+  zsh-5_0_3:
+    docker:
+      - image: zshusers/zsh-5.0.3
+    steps:
+      - test
+  zsh-5_0_2:
+    docker:
+      - image: zshusers/zsh-5.0.2
+    steps:
+      - test
+  zsh-5_0_1:
+    docker:
+      - image: zshusers/zsh-5.0.1
+    steps:
+      - test
+  zsh-5_0_0:
+    docker:
+      - image: zshusers/zsh-5.0.0
+    steps:
+      - test
+  zsh-4_3_17:
+    docker:
+      - image: zshusers/zsh-4.3.17
+    steps:
+      - test
+  zsh-4_3_16:
+    docker:
+      - image: zshusers/zsh-4.3.16
+    steps:
+      - test
+  zsh-4_3_15:
+    docker:
+      - image: zshusers/zsh-4.3.15
+    steps:
+      - test
+  zsh-4_3_14:
+    docker:
+      - image: zshusers/zsh-4.3.14
+    steps:
+      - test
+  zsh-4_3_13:
+    docker:
+      - image: zshusers/zsh-4.3.13
+    steps:
+      - test
+  zsh-4_3_12:
+    docker:
+      - image: zshusers/zsh-4.3.12
+    steps:
+      - test
+  zsh-4_3_11:
+    docker:
+      - image: zshusers/zsh-4.3.11
+    steps:
+      - test
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - master
+      - zsh-5_6_2
+      - zsh-5_6_1
+      - zsh-5_6
+      - zsh-5_5_1
+      - zsh-5_5
+      - zsh-5_4_2
+      - zsh-5_4_1
+      - zsh-5_4
+      - zsh-5_3_1
+      - zsh-5_3
+      - zsh-5_2
+      - zsh-5_1_1
+      - zsh-5_1
+      - zsh-5_0_8
+      - zsh-5_0_7
+      - zsh-5_0_6
+      - zsh-5_0_5
+      - zsh-5_0_4
+      - zsh-5_0_3
+      - zsh-5_0_2
+      - zsh-5_0_1
+      - zsh-5_0_0
+      - zsh-4_3_17
+      - zsh-4_3_16
+      - zsh-4_3_15
+      - zsh-4_3_14
+      - zsh-4_3_13
+      - zsh-4_3_12
+      - zsh-4_3_11
